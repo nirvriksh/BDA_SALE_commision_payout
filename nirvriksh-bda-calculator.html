@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nirvriksh RCA — BDA Payout Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --green: #1a5c3a;
+    --green-mid: #2d7a52;
+    --green-light: #e8f5ee;
+    --green-accent: #4caf82;
+    --amber: #c8830a;
+    --amber-light: #fff8e8;
+    --red: #b83232;
+    --red-light: #fdeaea;
+    --ink: #1a1a18;
+    --ink-2: #3a3a36;
+    --ink-3: #6b6b65;
+    --ink-4: #a0a09a;
+    --surface: #fafaf8;
+    --surface-2: #f2f2ef;
+    --surface-3: #e8e8e3;
+    --border: #ddddd7;
+    --white: #ffffff;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+    --shadow-lg: 0 4px 24px rgba(0,0,0,0.10);
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Outfit', sans-serif;
+    background: var(--surface);
+    color: var(--ink);
+    font-size: 15px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* Header */
+  .header {
+    background: var(--green);
+    color: white;
+    padding: 2rem 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .header-brand { display: flex; align-items: center; gap: 14px; }
+  .brand-icon {
+    width: 44px; height: 44px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px; color: white;
+  }
+  .brand-name { font-family: 'DM Serif Display', serif; font-size: 22px; color: white; line-height: 1; }
+  .brand-sub { font-size: 12px; color: rgba(255,255,255,0.65); margin-top: 2px; letter-spacing: 0.04em; }
+  .header-meta { font-size: 12px; color: rgba(255,255,255,0.55); text-align: right; line-height: 1.8; }
+
+  /* Layout */
+  .page { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+  .grid-main { display: grid; grid-template-columns: 1fr 380px; gap: 1.5rem; align-items: start; }
+  @media (max-width: 820px) { .grid-main { grid-template-columns: 1fr; } }
+
+  /* Section titles */
+  .sec-title {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+    margin-bottom: 1rem;
+  }
+
+  /* Cards */
+  .card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    box-shadow: var(--shadow);
+    margin-bottom: 1.5rem;
+  }
+  .card:last-child { margin-bottom: 0; }
+
+  /* BDA Form */
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+  @media (max-width: 520px) { .form-row { grid-template-columns: 1fr; } }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group label { font-size: 12px; font-weight: 500; color: var(--ink-3); letter-spacing: 0.03em; }
+  .form-group input, .form-group select {
+    padding: 9px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
+    color: var(--ink);
+    background: var(--surface);
+    transition: border-color 0.15s, box-shadow 0.15s;
+    outline: none;
+  }
+  .form-group input:focus, .form-group select:focus {
+    border-color: var(--green-accent);
+    box-shadow: 0 0 0 3px rgba(76,175,130,0.15);
+  }
+
+  /* Sales Entry Table */
+  .sales-table { width: 100%; border-collapse: collapse; }
+  .sales-table th {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+    padding: 0 12px 10px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  .sales-table th:last-child { text-align: right; }
+  .sales-table td { padding: 10px 12px; vertical-align: middle; }
+  .sales-table tbody tr { border-bottom: 1px solid var(--surface-2); transition: background 0.1s; }
+  .sales-table tbody tr:last-child { border-bottom: none; }
+  .sales-table tbody tr:hover { background: var(--surface); }
+
+  .plan-tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .tag-starter { background: var(--surface-2); color: var(--ink-2); }
+  .tag-growth { background: #e8f2ff; color: #1a4fa0; }
+  .tag-premium { background: var(--green-light); color: var(--green); }
+
+  .qty-input {
+    width: 70px;
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    text-align: center;
+    color: var(--ink);
+    background: var(--white);
+    transition: border-color 0.15s, box-shadow 0.15s;
+    outline: none;
+  }
+  .qty-input:focus { border-color: var(--green-accent); box-shadow: 0 0 0 3px rgba(76,175,130,0.15); }
+
+  .mono { font-family: 'DM Mono', monospace; font-size: 13px; }
+  .text-right { text-align: right; }
+  .text-deduct { color: var(--red); }
+  .text-net { color: var(--green); font-weight: 500; }
+  .text-muted { color: var(--ink-4); font-size: 13px; }
+
+  /* Upgrades */
+  .upgrade-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--surface-2);
+  }
+  .upgrade-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .upgrade-arrow {
+    font-size: 12px; color: var(--ink-3);
+    display: flex; align-items: center; gap: 6px;
+    flex: 1;
+  }
+  .pill {
+    padding: 3px 9px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    background: var(--surface-2);
+    color: var(--ink-2);
+  }
+  .pill-green { background: var(--green-light); color: var(--green); }
+  .upgrade-bonus { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--green); font-weight: 500; min-width: 60px; text-align: right; }
+
+  /* Payout Summary (sticky sidebar) */
+  .summary-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+    position: sticky;
+    top: 1.5rem;
+  }
+  .summary-head {
+    background: var(--green);
+    color: white;
+    padding: 1.25rem 1.5rem;
+  }
+  .summary-head h3 { font-family: 'DM Serif Display', serif; font-size: 18px; font-weight: 400; }
+  .summary-head p { font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 2px; }
+  .bda-display { margin-top: 10px; }
+  .bda-display .bda-name { font-size: 20px; font-weight: 600; }
+  .bda-display .bda-period { font-size: 12px; color: rgba(255,255,255,0.65); }
+
+  .summary-body { padding: 1.25rem 1.5rem; }
+  .sum-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 0;
+    font-size: 13px;
+    border-bottom: 1px solid var(--surface-2);
+  }
+  .sum-row:last-child { border-bottom: none; }
+  .sum-row .label { color: var(--ink-3); }
+  .sum-row .val { font-family: 'DM Mono', monospace; font-weight: 500; }
+  .sum-row.total {
+    margin-top: 8px;
+    padding-top: 14px;
+    border-top: 2px solid var(--green-light);
+    border-bottom: none;
+  }
+  .sum-row.total .label { font-size: 14px; font-weight: 600; color: var(--ink); }
+  .sum-row.total .val { font-size: 22px; color: var(--green); }
+
+  .bonus-badge {
+    background: var(--amber-light);
+    border: 1px solid #f5d88a;
+    border-radius: var(--radius-sm);
+    padding: 8px 12px;
+    margin: 12px 0;
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12px; color: var(--amber);
+    font-weight: 500;
+  }
+  .bonus-badge .icon { font-size: 16px; }
+
+  /* Lock period notice */
+  .lock-notice {
+    background: var(--red-light);
+    border-radius: var(--radius-sm);
+    padding: 8px 12px;
+    font-size: 12px;
+    color: var(--red);
+    margin: 10px 0;
+    display: flex; gap: 8px;
+  }
+
+  /* Pay button */
+  .pay-btn {
+    width: 100%;
+    padding: 14px;
+    background: var(--green);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: 'Outfit', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 1rem;
+    letter-spacing: 0.02em;
+    transition: background 0.15s, transform 0.1s;
+  }
+  .pay-btn:hover { background: var(--green-mid); }
+  .pay-btn:active { transform: scale(0.99); }
+  .pay-btn:disabled { background: var(--ink-4); cursor: not-allowed; }
+
+  .copy-btn {
+    width: 100%;
+    padding: 10px;
+    background: transparent;
+    color: var(--ink-3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: 'Outfit', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: background 0.15s, color 0.15s;
+  }
+  .copy-btn:hover { background: var(--surface-2); color: var(--ink); }
+
+  /* History */
+  .history-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .history-table th {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.07em;
+    text-transform: uppercase; color: var(--ink-4);
+    padding: 0 10px 8px; text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  .history-table td { padding: 9px 10px; border-bottom: 1px solid var(--surface-2); vertical-align: middle; }
+  .history-table tr:last-child td { border-bottom: none; }
+
+  .status-pill {
+    padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600;
+  }
+  .status-paid { background: var(--green-light); color: var(--green); }
+  .status-pending { background: var(--amber-light); color: var(--amber); }
+  .status-locked { background: var(--surface-2); color: var(--ink-3); }
+
+  /* PG rate table */
+  .rate-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .rate-table th { font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--ink-4); letter-spacing: 0.07em; padding: 0 10px 8px; text-align: left; border-bottom: 1px solid var(--border); }
+  .rate-table td { padding: 9px 10px; border-bottom: 1px solid var(--surface-2); }
+  .rate-table tr:last-child td { border-bottom: none; }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 4px; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
+  .tab {
+    padding: 8px 16px; font-size: 13px; font-weight: 500;
+    color: var(--ink-3); cursor: pointer; border: none; background: none;
+    border-bottom: 2px solid transparent; margin-bottom: -1px;
+    transition: color 0.15s, border-color 0.15s;
+    font-family: 'Outfit', sans-serif;
+  }
+  .tab.active { color: var(--green); border-bottom-color: var(--green); }
+  .tab:hover:not(.active) { color: var(--ink); }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* Toast */
+  .toast {
+    position: fixed; bottom: 2rem; right: 2rem;
+    background: var(--ink); color: white;
+    padding: 12px 20px; border-radius: var(--radius-sm);
+    font-size: 13px; font-weight: 500;
+    box-shadow: var(--shadow-lg);
+    transform: translateY(80px); opacity: 0;
+    transition: transform 0.25s, opacity 0.25s;
+    z-index: 999;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+
+  /* Print modal */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: none; align-items: center; justify-content: center;
+    z-index: 100;
+    padding: 1rem;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: white; border-radius: var(--radius);
+    padding: 2rem; max-width: 520px; width: 100%;
+    box-shadow: var(--shadow-lg);
+  }
+  .modal h3 { font-family: 'DM Serif Display', serif; font-size: 22px; margin-bottom: 0.5rem; }
+  .modal p { font-size: 13px; color: var(--ink-3); margin-bottom: 1.5rem; }
+  .receipt-rows { border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; margin-bottom: 1.5rem; }
+  .receipt-row { display: flex; justify-content: space-between; padding: 10px 14px; font-size: 13px; border-bottom: 1px solid var(--surface-2); }
+  .receipt-row:last-child { border-bottom: none; }
+  .receipt-row.total { background: var(--green-light); font-weight: 600; color: var(--green); }
+  .modal-btns { display: flex; gap: 10px; }
+  .btn-print {
+    flex: 1; padding: 11px; background: var(--green); color: white;
+    border: none; border-radius: var(--radius-sm);
+    font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 600;
+    cursor: pointer;
+  }
+  .btn-close {
+    flex: 1; padding: 11px; background: transparent; color: var(--ink-3);
+    border: 1px solid var(--border); border-radius: var(--radius-sm);
+    font-family: 'Outfit', sans-serif; font-size: 14px; cursor: pointer;
+  }
+
+  @media print {
+    .header, .tabs, .tab-panel:not(.active), .pay-btn, .copy-btn, .modal-overlay { display: none !important; }
+    .summary-card { box-shadow: none; border: 1px solid #ddd; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-brand">
+    <div class="brand-icon">N</div>
+    <div>
+      <div class="brand-name">Nirvriksh RCA</div>
+      <div class="brand-sub">BDA Commission & Payout Calculator</div>
+    </div>
+  </div>
+  <div class="header-meta">
+    Version 1.0 &nbsp;·&nbsp; Effective May 2026<br>
+    Policy: Commission Lock — 7 days
+  </div>
+</div>
+
+<div class="page">
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('calculator')">Calculator</button>
+    <button class="tab" onclick="switchTab('history')">Payout History</button>
+    <button class="tab" onclick="switchTab('rates')">PG Rates & Policy</button>
+  </div>
+
+  <!-- CALCULATOR TAB -->
+  <div class="tab-panel active" id="tab-calculator">
+    <div class="grid-main">
+
+      <!-- LEFT COLUMN -->
+      <div>
+
+        <!-- BDA Details -->
+        <div class="card">
+          <p class="sec-title">BDA Details</p>
+          <div class="form-row">
+            <div class="form-group">
+              <label>BDA Full Name</label>
+              <input type="text" id="bdaName" placeholder="e.g. Priya Sharma" oninput="updateSummary()">
+            </div>
+            <div class="form-group">
+              <label>BDA ID / Code</label>
+              <input type="text" id="bdaId" placeholder="e.g. NR-BDA-042" oninput="updateSummary()">
+            </div>
+            <div class="form-group">
+              <label>Payout Period</label>
+              <input type="month" id="payPeriod" oninput="updateSummary()">
+            </div>
+            <div class="form-group">
+              <label>Payment Method</label>
+              <select id="payMethod" onchange="updateSummary()">
+                <option value="upi">UPI</option>
+                <option value="bank">Bank Transfer (NEFT/IMPS)</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>UPI ID / Account Number</label>
+              <input type="text" id="payDetail" placeholder="upi@bank or account no." oninput="updateSummary()">
+            </div>
+            <div class="form-group">
+              <label>IFSC Code (if bank transfer)</label>
+              <input type="text" id="ifsc" placeholder="e.g. HDFC0001234" oninput="updateSummary()">
+            </div>
+          </div>
+        </div>
+
+        <!-- Sales Entry -->
+        <div class="card">
+          <p class="sec-title">Sales This Period</p>
+          <table class="sales-table">
+            <thead>
+              <tr>
+                <th>Plan</th>
+                <th>Customer Price</th>
+                <th>Commission</th>
+                <th>PG Deduction</th>
+                <th>Net / Sale</th>
+                <th>Qty</th>
+                <th style="text-align:right">Total Net</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="plan-tag tag-starter">Starter</span></td>
+                <td class="mono">₹199</td>
+                <td class="mono">₹20.00</td>
+                <td class="mono text-deduct">−₹4.70</td>
+                <td class="mono text-net">₹15.30</td>
+                <td><input class="qty-input" type="number" id="q1" min="0" value="0" oninput="updateSummary()"></td>
+                <td class="mono text-right" id="t1">₹0</td>
+              </tr>
+              <tr>
+                <td><span class="plan-tag tag-growth">Growth</span></td>
+                <td class="mono">₹599</td>
+                <td class="mono">₹75.00</td>
+                <td class="mono text-deduct">−₹14.14</td>
+                <td class="mono text-net">₹60.86</td>
+                <td><input class="qty-input" type="number" id="q2" min="0" value="0" oninput="updateSummary()"></td>
+                <td class="mono text-right" id="t2">₹0</td>
+              </tr>
+              <tr>
+                <td><span class="plan-tag tag-premium">Premium</span></td>
+                <td class="mono">₹2,999</td>
+                <td class="mono">₹500.00</td>
+                <td class="mono text-deduct">−₹70.78</td>
+                <td class="mono text-net">₹429.22</td>
+                <td><input class="qty-input" type="number" id="q3" min="0" value="0" oninput="updateSummary()"></td>
+                <td class="mono text-right" id="t3">₹0</td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="text-muted" style="margin-top:10px; padding-left:12px; font-size:11px;">
+            * PG deduction = 2% of customer price + 18% GST on that 2%. UPI payments ≤₹2000 may attract 0% PG fee.
+          </p>
+        </div>
+
+        <!-- Upgrade Incentives -->
+        <div class="card">
+          <p class="sec-title">Upgrade Incentives</p>
+          <div class="upgrade-row">
+            <div class="upgrade-arrow">
+              <span class="pill">₹199</span>
+              →
+              <span class="pill" style="background:#e8f2ff; color:#1a4fa0;">₹599</span>
+              <span class="text-muted" style="margin-left:4px;">upgrades</span>
+            </div>
+            <input class="qty-input" type="number" id="u1" min="0" value="0" oninput="updateSummary()">
+            <span class="upgrade-bonus">+₹50 each</span>
+            <span class="mono" id="ut1" style="min-width:65px; text-align:right; color:var(--green)">₹0</span>
+          </div>
+          <div class="upgrade-row">
+            <div class="upgrade-arrow">
+              <span class="pill" style="background:#e8f2ff; color:#1a4fa0;">₹599</span>
+              →
+              <span class="pill pill-green">₹2999</span>
+              <span class="text-muted" style="margin-left:4px;">upgrades</span>
+            </div>
+            <input class="qty-input" type="number" id="u2" min="0" value="0" oninput="updateSummary()">
+            <span class="upgrade-bonus">+₹150 each</span>
+            <span class="mono" id="ut2" style="min-width:65px; text-align:right; color:var(--green)">₹0</span>
+          </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="card">
+          <p class="sec-title">Internal Notes (optional)</p>
+          <div class="form-group">
+            <textarea id="notes" rows="3" style="width:100%; padding:9px 12px; border:1px solid var(--border); border-radius:8px; font-family:'Outfit',sans-serif; font-size:14px; color:var(--ink); resize:vertical; background:var(--surface); outline:none;" placeholder="Any remarks about this payout, disputes, or adjustments..."></textarea>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT COLUMN — Summary -->
+      <div>
+        <div class="summary-card">
+          <div class="summary-head">
+            <h3>Payout Summary</h3>
+            <p>Net amount after PG charges & bonus</p>
+            <div class="bda-display">
+              <div class="bda-name" id="sum-name">— BDA Name —</div>
+              <div class="bda-period" id="sum-period">Period not set</div>
+            </div>
+          </div>
+          <div class="summary-body">
+
+            <div id="bonus-badge" class="bonus-badge" style="display:none;">
+              <span class="icon">🏆</span>
+              <span id="bonus-text">Performance bonus applied!</span>
+            </div>
+
+            <div id="lock-notice" class="lock-notice" style="display:none;">
+              <span>🔒</span>
+              <span>Commission is within the 7-day lock period. Verify all transactions before releasing.</span>
+            </div>
+
+            <div class="sum-row">
+              <span class="label">Starter sales</span>
+              <span class="val" id="s-starter">0 × ₹15.30 = ₹0</span>
+            </div>
+            <div class="sum-row">
+              <span class="label">Growth sales</span>
+              <span class="val" id="s-growth">0 × ₹60.86 = ₹0</span>
+            </div>
+            <div class="sum-row">
+              <span class="label">Premium sales</span>
+              <span class="val" id="s-premium">0 × ₹429.22 = ₹0</span>
+            </div>
+            <div class="sum-row">
+              <span class="label">Upgrade bonuses</span>
+              <span class="val text-net" id="s-upgrades">₹0</span>
+            </div>
+            <div class="sum-row">
+              <span class="label">Subtotal (post-PG)</span>
+              <span class="val" id="s-subtotal">₹0</span>
+            </div>
+            <div class="sum-row">
+              <span class="label" style="color:var(--amber)">Performance bonus</span>
+              <span class="val" style="color:var(--amber)" id="s-bonus">₹0</span>
+            </div>
+            <div class="sum-row total">
+              <span class="label">NET PAYOUT</span>
+              <span class="val" id="s-total">₹0</span>
+            </div>
+
+            <div style="margin-top:14px; font-size:12px; color:var(--ink-4); line-height:1.8;">
+              <div>Total sales: <strong id="s-count">0</strong></div>
+              <div>Payment to: <strong id="s-paydetail">—</strong></div>
+              <div>Method: <strong id="s-method">UPI</strong></div>
+            </div>
+
+            <button class="pay-btn" onclick="openPayModal()" id="payBtn" disabled>
+              Generate Payout Receipt
+            </button>
+            <button class="copy-btn" onclick="copySummary()">
+              Copy Summary Text
+            </button>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HISTORY TAB -->
+  <div class="tab-panel" id="tab-history">
+    <div class="card">
+      <p class="sec-title">Payout History</p>
+      <table class="history-table" id="historyTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>BDA Name</th>
+            <th>BDA ID</th>
+            <th>Period</th>
+            <th>Sales</th>
+            <th>Net Payout</th>
+            <th>Payment</th>
+            <th>Date</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="historyBody">
+          <tr><td colspan="9" style="text-align:center; color:var(--ink-4); padding:2rem;">No payouts recorded yet.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- RATES TAB -->
+  <div class="tab-panel" id="tab-rates">
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem;">
+      <div>
+        <div class="card">
+          <p class="sec-title">Commission Rates</p>
+          <table class="rate-table">
+            <thead><tr><th>Plan</th><th>Price</th><th>Commission</th><th>PG Deduct</th><th>Net</th></tr></thead>
+            <tbody>
+              <tr><td><span class="plan-tag tag-starter">Starter</span></td><td class="mono">₹199</td><td class="mono">₹20.00</td><td class="mono text-deduct">₹4.70</td><td class="mono text-net">₹15.30</td></tr>
+              <tr><td><span class="plan-tag tag-growth">Growth</span></td><td class="mono">₹599</td><td class="mono">₹75.00</td><td class="mono text-deduct">₹14.14</td><td class="mono text-net">₹60.86</td></tr>
+              <tr><td><span class="plan-tag tag-premium">Premium</span></td><td class="mono">₹2,999</td><td class="mono">₹500.00</td><td class="mono text-deduct">₹70.78</td><td class="mono text-net">₹429.22</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <p class="sec-title">Upgrade Incentives</p>
+          <table class="rate-table">
+            <thead><tr><th>Upgrade Route</th><th>Extra Bonus</th></tr></thead>
+            <tbody>
+              <tr><td>₹199 → ₹599</td><td class="mono text-net">+₹50</td></tr>
+              <tr><td>₹599 → ₹2,999</td><td class="mono text-net">+₹150</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <p class="sec-title">Monthly Performance Bonus Slabs</p>
+          <table class="rate-table">
+            <thead><tr><th>Monthly Sales</th><th>Bonus</th></tr></thead>
+            <tbody>
+              <tr><td>1–19 sales</td><td class="mono">No bonus</td></tr>
+              <tr><td>20–49 sales</td><td class="mono" style="color:var(--amber)">+10% on net commission</td></tr>
+              <tr><td>50–99 sales</td><td class="mono text-net">+20% on net commission</td></tr>
+              <tr><td>100+ sales</td><td class="mono text-net">Performance review + Leadership</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <p class="sec-title">Payment Gateway Policy</p>
+          <table class="rate-table">
+            <thead><tr><th>Payment Type</th><th>PG Rate</th><th>GST</th></tr></thead>
+            <tbody>
+              <tr><td>Cards / Net Banking</td><td class="mono">2% of sale</td><td class="mono">18% on PG fee</td></tr>
+              <tr><td>UPI &gt; ₹2,000</td><td class="mono">2% of sale</td><td class="mono">18% on PG fee</td></tr>
+              <tr><td>UPI ≤ ₹2,000</td><td class="mono text-net">0%</td><td class="mono text-net">0%</td></tr>
+              <tr><td>Wallet</td><td class="mono">~1.75%</td><td class="mono">18% on PG fee</td></tr>
+            </tbody>
+          </table>
+          <p style="font-size:11px; color:var(--ink-4); margin-top:10px;">PG charges applied on customer amount, not commission. 7-day lock period from payment date applies to all commissions before payout release.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Pay Modal -->
+<div class="modal-overlay" id="payModal">
+  <div class="modal">
+    <h3>Confirm Payout</h3>
+    <p>Review the details below before marking this payout as processed.</p>
+    <div class="receipt-rows" id="receiptRows"></div>
+    <div class="modal-btns">
+      <button class="btn-print" onclick="confirmPayout()">✓ Confirm & Save</button>
+      <button class="btn-close" onclick="closeModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+const NET = { s: 15.30, g: 60.86, p: 429.22 };
+const GROSS = { s: 20, g: 75, p: 500 };
+const PG_LABELS = { s: '₹4.70', g: '₹14.14', p: '₹70.78' };
+
+let payoutHistory = JSON.parse(localStorage.getItem('nirvriksh_history') || '[]');
+
+// NOTE: In a production environment, this should be handled via a secure backend or build-time environment variables.
+const SHEET_API_ENDPOINT = "https://sheetdb.io/api/v1/rdvjdfowipt16"; 
+
+function n(id) { return Math.max(0, parseInt(document.getElementById(id).value) || 0); }
+function fmt(v) { return '₹' + v.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+
+function updateSummary() {
+  const q1 = n('q1'), q2 = n('q2'), q3 = n('q3');
+  const u1 = n('u1'), u2 = n('u2');
+  const total = q1 + q2 + q3;
+
+  const tStart = q1 * NET.s, tGrowth = q2 * NET.g, tPrem = q3 * NET.p;
+  const tUpgrade = u1 * 50 + u2 * 150;
+  const subtotal = tStart + tGrowth + tPrem + tUpgrade;
+
+  let bonusPct = 0, bonusLabel = '';
+  if (total >= 50) { bonusPct = 0.20; bonusLabel = `🏆 50+ sales — 20% bonus on net commission!`; }
+  else if (total >= 20) { bonusPct = 0.10; bonusLabel = `⭐ 20+ sales — 10% bonus on net commission!`; }
+  const bonusAmt = Math.round((tStart + tGrowth + tPrem) * bonusPct);
+  const finalNet = subtotal + bonusAmt;
+
+  // Row totals
+  document.getElementById('t1').textContent = fmt(tStart);
+  document.getElementById('t2').textContent = fmt(tGrowth);
+  document.getElementById('t3').textContent = fmt(tPrem);
+  document.getElementById('ut1').textContent = fmt(u1 * 50);
+  document.getElementById('ut2').textContent = fmt(u2 * 150);
+
+  // Summary
+  document.getElementById('s-starter').textContent = `${q1} × ₹15.30 = ${fmt(tStart)}`;
+  document.getElementById('s-growth').textContent = `${q2} × ₹60.86 = ${fmt(tGrowth)}`;
+  document.getElementById('s-premium').textContent = `${q3} × ₹429.22 = ${fmt(tPrem)}`;
+  document.getElementById('s-upgrades').textContent = fmt(tUpgrade);
+  document.getElementById('s-subtotal').textContent = fmt(subtotal);
+  document.getElementById('s-bonus').textContent = bonusPct > 0 ? `+${fmt(bonusAmt)} (${bonusPct*100}%)` : '₹0';
+  document.getElementById('s-total').textContent = fmt(finalNet);
+  document.getElementById('s-count').textContent = total;
+
+  // BDA info
+  const name = document.getElementById('bdaName').value || '— BDA Name —';
+  const period = document.getElementById('payPeriod').value;
+  document.getElementById('sum-name').textContent = name;
+  document.getElementById('sum-period').textContent = period ? 'Period: ' + period : 'Period not set';
+
+  const payDetail = document.getElementById('payDetail').value || '—';
+  const method = document.getElementById('payMethod').value === 'upi' ? 'UPI' : 'Bank Transfer';
+  document.getElementById('s-paydetail').textContent = payDetail;
+  document.getElementById('s-method').textContent = method;
+
+  // Bonus badge
+  const bb = document.getElementById('bonus-badge');
+  if (bonusPct > 0) { bb.style.display = 'flex'; document.getElementById('bonus-text').textContent = bonusLabel; }
+  else { bb.style.display = 'none'; }
+
+  // Pay button
+  document.getElementById('payBtn').disabled = (total === 0 || !document.getElementById('bdaName').value);
+}
+
+function openPayModal() {
+  const q1=n('q1'),q2=n('q2'),q3=n('q3'),u1=n('u1'),u2=n('u2');
+  const total=q1+q2+q3;
+  const tStart=q1*NET.s, tGrowth=q2*NET.g, tPrem=q3*NET.p;
+  const tUpgrade=u1*50+u2*150;
+  const subtotal=tStart+tGrowth+tPrem+tUpgrade;
+  let bonusPct=0;
+  if(total>=50) bonusPct=0.20; else if(total>=20) bonusPct=0.10;
+  const bonusAmt=Math.round((tStart+tGrowth+tPrem)*bonusPct);
+  const finalNet=subtotal+bonusAmt;
+
+  const name=document.getElementById('bdaName').value;
+  const bdaId=document.getElementById('bdaId').value||'—';
+  const period=document.getElementById('payPeriod').value||'—';
+  const payDetail=document.getElementById('payDetail').value||'—';
+  const method=document.getElementById('payMethod').value==='upi'?'UPI':'Bank Transfer';
+
+  const rows = [
+    ['BDA Name', name], ['BDA ID', bdaId], ['Period', period],
+    ['Starter Sales', `${q1} × ₹15.30 = ${fmt(tStart)}`],
+    ['Growth Sales', `${q2} × ₹60.86 = ${fmt(tGrowth)}`],
+    ['Premium Sales', `${q3} × ₹429.22 = ${fmt(tPrem)}`],
+    ['Upgrade Bonuses', fmt(tUpgrade)],
+    ['Subtotal (post-PG)', fmt(subtotal)],
+    ['Performance Bonus', bonusPct>0 ? `+${fmt(bonusAmt)} (${bonusPct*100}%)` : '₹0'],
+    ['Payment Method', method], ['Payment To', payDetail],
+  ];
+
+  let html = rows.map(([l,v])=>`<div class="receipt-row"><span>${l}</span><span style="font-family:'DM Mono',monospace;font-size:13px;">${v}</span></div>`).join('');
+  html += `<div class="receipt-row total"><span>NET PAYOUT</span><span>${fmt(finalNet)}</span></div>`;
+  document.getElementById('receiptRows').innerHTML = html;
+  document.getElementById('payModal').classList.add('open');
+}
+
+function closeModal() { document.getElementById('payModal').classList.remove('open'); }
+
+async function confirmPayout() {
+  const q1=n('q1'),q2=n('q2'),q3=n('q3'),u1=n('u1'),u2=n('u2');
+  const total=q1+q2+q3;
+  const tStart=q1*NET.s, tGrowth=q2*NET.g, tPrem=q3*NET.p;
+  const tUpgrade=u1*50+u2*150;
+  const subtotal=tStart+tGrowth+tPrem+tUpgrade;
+  let bonusPct=0;
+  if(total>=50) bonusPct=0.20; else if(total>=20) bonusPct=0.10;
+  const bonusAmt=Math.round((tStart+tGrowth+tPrem)*bonusPct);
+  const finalNet=subtotal+bonusAmt;
+
+  const bdaName = document.getElementById('bdaName').value;
+  const bdaId = document.getElementById('bdaId').value||'—';
+  const period = document.getElementById('payPeriod').value||'—';
+  const payDetail = document.getElementById('payDetail').value||'—';
+  const method = document.getElementById('payMethod').value==='upi'?'UPI':'Bank Transfer';
+  const notes = document.getElementById('notes').value || '';
+  const dateStr = new Date().toLocaleDateString('en-IN');
+
+  const record = {
+    id: Date.now(),
+    bdaName: bdaName,
+    bdaId: bdaId,
+    period: period,
+    totalSales: total,
+    netPayout: finalNet,
+    payDetail: payDetail,
+    method: method,
+    date: dateStr,
+    status: 'Paid'
+  };
+
+  // 1. Save to Local Storage
+  payoutHistory.unshift(record);
+  localStorage.setItem('nirvriksh_history', JSON.stringify(payoutHistory));
+  renderHistory();
+  
+  // 2. Sync to Google Sheets via SheetDB
+  showToast("Syncing with Google Sheets...");
+  try {
+    const response = await fetch(SHEET_API_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        data: [
+          {
+            "payout_date": dateStr,
+            "bda_name": bdaName,
+            "bda_id": bdaId,
+            "payout_period": period,
+            "starter_qty": q1,
+            "growth_qty": q2,
+            "premium_qty": q3,
+            "total_sales_count": total,
+            "total_upgrade_bonus": tUpgrade,
+            "performance_bonus_pct": (bonusPct * 100) + "%",
+            "perf_bonus_amount": bonusAmt,
+            "total_payout_net": finalNet,
+            "payment_method": method,
+            "account_detail": payDetail,
+            "payout_status": "Paid",
+            "internal_notes": notes
+          }
+        ]
+      })
+    });
+
+    if (response.ok) {
+      showToast(`Success! Payout of ${fmt(finalNet)} synced to Sheets.`);
+    } else {
+      throw new Error("Sheet sync failed");
+    }
+  } catch (error) {
+    console.error("Sync Error:", error);
+    showToast("Local save successful, but Sheet sync failed.");
+  }
+
+  closeModal();
+
+  // Reset form
+  ['q1','q2','q3','u1','u2'].forEach(id => document.getElementById(id).value=0);
+  document.getElementById('bdaName').value='';
+  document.getElementById('bdaId').value='';
+  document.getElementById('payDetail').value='';
+  document.getElementById('notes').value='';
+  updateSummary();
+}
+
+function renderHistory() {
+  const body = document.getElementById('historyBody');
+  if (!payoutHistory.length) {
+    body.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--ink-4);padding:2rem;">No payouts recorded yet.</td></tr>';
+    return;
+  }
+  body.innerHTML = payoutHistory.map((r, i) => `
+    <tr>
+      <td style="color:var(--ink-4)">${i+1}</td>
+      <td style="font-weight:500">${r.bdaName}</td>
+      <td style="font-family:'DM Mono',monospace;font-size:12px;">${r.bdaId}</td>
+      <td>${r.period}</td>
+      <td>${r.totalSales}</td>
+      <td style="font-family:'DM Mono',monospace;font-weight:500;color:var(--green)">${fmt(r.netPayout)}</td>
+      <td style="font-size:12px">${r.method}<br><span style="color:var(--ink-4)">${r.payDetail}</span></td>
+      <td style="font-size:12px">${r.date}</td>
+      <td><span class="status-pill status-paid">${r.status}</span></td>
+    </tr>
+  `).join('');
+}
+
+function copySummary() {
+  const q1=n('q1'),q2=n('q2'),q3=n('q3'),u1=n('u1'),u2=n('u2');
+  const total=q1+q2+q3;
+  const tStart=q1*NET.s, tGrowth=q2*NET.g, tPrem=q3*NET.p;
+  const tUpgrade=u1*50+u2*150;
+  const subtotal=tStart+tGrowth+tPrem+tUpgrade;
+  let bonusPct=0;
+  if(total>=50) bonusPct=0.20; else if(total>=20) bonusPct=0.10;
+  const bonusAmt=Math.round((tStart+tGrowth+tPrem)*bonusPct);
+  const finalNet=subtotal+bonusAmt;
+
+  const txt = `
+NIRVRIKSH RCA — BDA PAYOUT SUMMARY
+===================================
+BDA: ${document.getElementById('bdaName').value||'—'} (${document.getElementById('bdaId').value||'—'})
+Period: ${document.getElementById('payPeriod').value||'—'}
+---
+Starter Sales: ${q1} × ₹15.30 = ${fmt(tStart)}
+Growth Sales: ${q2} × ₹60.86 = ${fmt(tGrowth)}
+Premium Sales: ${q3} × ₹429.22 = ${fmt(tPrem)}
+Upgrade Bonuses: ${fmt(tUpgrade)}
+Subtotal: ${fmt(subtotal)}
+Performance Bonus: ${bonusPct>0?`+${fmt(bonusAmt)} (${bonusPct*100}%)`:'₹0'}
+---
+NET PAYOUT: ${fmt(finalNet)}
+Payment: ${document.getElementById('payMethod').value==='upi'?'UPI':'Bank Transfer'} → ${document.getElementById('payDetail').value||'—'}
+`.trim();
+
+  navigator.clipboard.writeText(txt).then(() => showToast('Summary copied to clipboard!'));
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelector(`.tab[onclick="switchTab('${name}')"]`).classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+// Init
+document.getElementById('payPeriod').value = new Date().toISOString().slice(0, 7);
+renderHistory();
+updateSummary();
+</script>
+</body>
+</html>
